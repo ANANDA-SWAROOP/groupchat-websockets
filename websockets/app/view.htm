@@ -1,0 +1,70 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+  <div class="p-8">
+    <h1 class="text-3xl font-bold underline mb-4">Welcome to the Chat App</h1>
+    <div>
+      <h3 class="text-xl font-semibold">Start Messaging</h3>
+      <form action="" onsubmit="sendMessage(event)" class="mb-4">
+        <h1 class="text-gray-700">Session ID: <span id="ws-id" class="font-mono text-green-600"></span></h1>
+        <input type="text" placeholder="Enter message" id="message" class="border rounded px-2 py-1 mr-2">
+        <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700">Send</button>
+      </form>
+      <ul id="chats" class="list-disc pl-5 text-gray-800">
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    // Generate a unique client ID
+    let client_id = Date.now();
+    document.getElementById('ws-id').textContent = client_id;
+
+    // Create a WebSocket connection
+    let ws;
+    try {
+      ws = new WebSocket(`ws://localhost:8000/ws/${client_id}`);
+
+      ws.onopen = () => {
+        console.log("WebSocket connection opened");
+      };
+
+      ws.onmessage = (event) => {
+        // Display the received message
+        let chats = document.getElementById('chats');
+        let message = document.createElement('li');
+        let content = document.createTextNode(event.data);
+        message.appendChild(content);
+        chats.appendChild(message);
+      };
+
+      ws.onclose = () => {
+        console.error("WebSocket connection closed");
+      };
+
+      ws.onerror = (error) => {
+        console.error("WebSocket error:", error);
+      };
+    } catch (error) {
+      console.error("WebSocket initialization failed:", error);
+    }
+
+    // Send message to WebSocket server
+    function sendMessage(event) {
+      event.preventDefault(); // Prevent form submission
+      let input = document.getElementById("message");
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(input.value); // Send message to the server
+        input.value = ''; // Clear input
+      } else {
+        alert("WebSocket connection is not open");
+      }
+    }
+  </script>
+</body>
+</html>
